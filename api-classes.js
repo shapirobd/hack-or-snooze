@@ -73,6 +73,20 @@ class User {
 		this.ownStories = [];
 	}
 
+	async editStory(storyId, newAuthor, newTitle, newUrl) {
+		token = localStorage.getItem("token");
+		const response = await axios.patch(`${BASE_URL}/stories/${storyId}`, {
+			token,
+			story: {
+				author: `${newAuthor}`,
+				title: `${newTitle}`,
+				url: `${newUrl}`,
+			},
+		});
+		console.log(response);
+		return response;
+	}
+
 	async deleteStory(storyId) {
 		token = localStorage.getItem("token");
 		return await axios.delete(`${BASE_URL}/stories/${storyId}`, {

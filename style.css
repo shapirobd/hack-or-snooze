@@ -70,10 +70,6 @@ nav span {
 	background-color: #f6f6ef;
 }
 
-.star {
-	display: inline-block;
-}
-
 form {
 	display: flex;
 	flex-direction: column;
@@ -154,15 +150,25 @@ form > hr {
 	cursor: pointer;
 }
 
+.edit-input {
+	margin: 20px;
+}
+
 .star,
-.trash-can,
+.trash,
 .pencil {
+	display: inline-block;
 	font-size: 0.75rem;
 	margin: 0 2px;
 	cursor: pointer;
 }
 
-.trash-can:hover {
+.pencil {
+	float: right;
+	margin-right: 20px;
+}
+
+.trash:hover {
 	color: crimson;
 }
 

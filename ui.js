@@ -21,6 +21,10 @@ $(async function () {
 	const $profileName = $("#profile-name");
 	const $profileUsername = $("#profile-username");
 	const $profileCreatedDate = $("#profile-account-date");
+	const $editArticleForm = $("#edit-article-form");
+	const $editAuthorInput = $("#edit-author");
+	const $editTitleInput = $("#edit-title");
+	const $editUrlInput = $("#edit-url");
 
 	// elements that are used by the hideElements function
 	const elementsToHide = [
@@ -31,6 +35,7 @@ $(async function () {
 		$loginForm,
 		$createAccountForm,
 		$allFavoritesList,
+		$editArticleForm,
 	];
 
 	// markup for a trashcan that corresponds to a story submitted by the user that can be deleted
@@ -51,6 +56,12 @@ $(async function () {
 		<i class="fas fa-star"></i>
 	</div>`;
 
+	// markup for a pencil that corresponds to a user's story
+	let pencilMarkup = `
+	<div class="pencil">
+		<i class="fas fa-edit"></i>
+	</div>`;
+
 	// boolean value that represents whether or not a user's name, username & created time/date
 	// are shown in the user profile section
 	let profileInfoShown = false;
@@ -63,6 +74,8 @@ $(async function () {
 
 	// global currentUser variable
 	let currentUser = null;
+
+	let storyToEdit = {};
 
 	await checkIfLoggedIn();
 
@@ -138,7 +151,7 @@ $(async function () {
 	// event handler for clicking 'my stories'
 	$navMyStories.on("click", async function () {
 		hideElements();
-		await generateMyStories();
+		generateMyStories();
 		$myStoriesList.toggle();
 		$createStoryForm.addClass("hidden");
 	});
@@ -149,10 +162,27 @@ $(async function () {
 		let newStory = createNewStoryObj();
 		// const storyListInstance = await StoryList.getStories();
 		await StoryList.addStory(currentUser, newStory, currentUser.username);
-		await generateStories();
+		generateStories();
 		$createStoryForm.slideToggle();
-		$createStoryForm.addClass("hidden");
 		emptySubmitForm();
+	});
+
+	$editArticleForm.on("submit", async function (e) {
+		e.preventDefault();
+		const storyId = storyToEdit.storyId;
+		await currentUser.editStory(
+			storyId,
+			$editAuthorInput.val(),
+			$editTitleInput.val(),
+			$editUrlInput.val()
+		);
+		storyToEdit.author = $editAuthorInput.val();
+		storyToEdit.title = $editTitleInput.val();
+		storyToEdit.url = $editUrlInput.val();
+		await generateMyStories();
+		$editArticleForm.slideToggle();
+		$editArticleForm.addClass("hidden");
+		console.log(storyToEdit);
 	});
 
 	// creates a new story object based on the input from the submit form
@@ -191,6 +221,54 @@ $(async function () {
 			const urlsWithSlash = makeBothEndWithSlash(story.url, storyURL);
 			return urlsWithSlash[0] === urlsWithSlash[1];
 		})[0];
+	}
+
+	function findStoryToEdit(pencil) {
+		const selectedStory = $(pencil).parent().siblings();
+		let storyURL = selectedStory.get()[2].href;
+		return storyList.stories.filter((story) => {
+			const urlsWithSlash = makeBothEndWithSlash(story.url, storyURL);
+			return urlsWithSlash[0] === urlsWithSlash[1];
+		})[0];
+	}
+
+	function listenForEditStory(pencil) {
+		pencil.on("click", async function () {
+			let clickedStory = await findStoryToEdit(this);
+
+			let clickedStoryKeys = Object.keys(clickedStory);
+			let storyToEditKeys = Object.keys(storyToEdit);
+			let isMatch = true;
+			if (clickedStoryKeys.length !== storyToEditKeys.length) {
+				isMatch = false;
+				storyToEdit = await findStoryToEdit(this);
+				$editArticleForm.slideToggle(function () {
+					$editTitleInput.val(storyToEdit.title);
+					$editAuthorInput.val(storyToEdit.author);
+					$editUrlInput.val(storyToEdit.url);
+				});
+			} else {
+				for (let key of clickedStoryKeys) {
+					if (clickedStory[key] !== storyToEdit[key]) {
+						isMatch = false;
+						storyToEdit = await findStoryToEdit(this);
+						$editArticleForm.slideToggle(function () {
+							$editTitleInput.val(storyToEdit.title);
+							$editAuthorInput.val(storyToEdit.author);
+							$editUrlInput.val(storyToEdit.url);
+						});
+						$editArticleForm.slideToggle();
+						break;
+					}
+				}
+			}
+			// if (isMatch === false) {
+			// 	const storyId = storyToEdit.storyId;
+			// 	submitEdit(storyId, storyToEdit);
+			// } else {
+			// 	return;
+			// }
+		});
 	}
 
 	// adds a listener to an empty star that allows the user to favorite the associated story
@@ -257,9 +335,7 @@ $(async function () {
 
 	$("body").on("click", "#nav-all", async function () {
 		hideElements();
-		await generateStories();
-		$createStoryForm.addClass("hidden");
-		$allFavoritesList.addClass("hidden");
+		generateStories();
 		$allStoriesList.show();
 	});
 
@@ -272,7 +348,7 @@ $(async function () {
 		// to get an instance of User with the right details
 		// this is designed to run once, on page load
 		currentUser = await User.getLoggedInUser(token, username);
-		await generateStories();
+		generateStories();
 		if (currentUser) {
 			showNavForLoggedInUser();
 		}
@@ -339,15 +415,23 @@ $(async function () {
 		}
 	}
 
+	function armPencils(myStories) {
+		for (let li of myStories) {
+			let pencilContainer = li.querySelector(".pencil");
+			listenForEditStory($(pencilContainer).find("i"));
+		}
+	}
+
 	// this function only runs within the generateMyStories function.
 	// - makes stars next to favorited stories in the my-stories list solid
 	// - adds a trashcan next to each story in the my-stories list
-	function addStarsAndTrashcans() {
+	function addStarsTrashAndPencils() {
 		if (currentUser) {
 			let storyList = $("#my-articles li");
 			showFavorites(storyList);
 			let myStoryList = $("#my-articles li");
 			armTrashcans(myStoryList);
+			armPencils(myStoryList);
 		}
 	}
 
@@ -361,7 +445,8 @@ $(async function () {
 		myStories.map((story) => {
 			$myStoriesList.append(generateMyStoryHTML(story));
 		});
-		addStarsAndTrashcans();
+		addStarsTrashAndPencils();
+		storyToEdit = {};
 	}
 
 	// renders the list of favorites
@@ -432,7 +517,8 @@ $(async function () {
           		<strong>${story.title}</strong>
         	</a>
         	<small class="article-author">by ${story.author}</small>
-        	<small class="article-hostname ${hostName}">(${hostName})</small>
+			<small class="article-hostname ${hostName}">(${hostName})</small>
+			${pencilMarkup}
         	<small class="article-username">posted by ${story.username}</small>
       	</li>
     	`);

@@ -31,6 +31,8 @@
 					<a href="#" class="nav-link" href="#" id="nav-my-stories"
 						>My Stories</a
 					>
+					<!-- |
+					<a href="#" class="nav-link" href="#" id="nav-my-stories">My Stories</a> -->
 				</div>
 			</span>
 			<a class="nav-link nav-right" href="#" id="nav-login"
@@ -78,9 +80,19 @@
 		<section class="edit-article-container container">
 			<form action="#" id="edit-article-form" class="hidden" method="post">
 				<h4>Article Information</h4>
-				<div class="edit-input">
-					<label for="edit-title">Title</label>
-					<input id="edit-title" type="text" />
+				<div id="edit-input-section">
+					<div class="edit-input">
+						<label for="edit-title">Title</label>
+						<input id="edit-title" type="text" />
+					</div>
+					<div class="edit-input">
+						<label for="edit-author">Author</label>
+						<input id="edit-author" type="text" />
+					</div>
+					<div class="edit-input">
+						<label for="edit-url">URL</label>
+						<input id="edit-url" type="text" />
+					</div>
 					<button type="submit">change</button>
 				</div>
 			</form>
