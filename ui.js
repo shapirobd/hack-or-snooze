@@ -136,6 +136,9 @@ $(async function () {
 			hideElements($allStoriesList);
 			$createStoryForm.slideToggle();
 			$createStoryForm.removeClass("hidden");
+		} else {
+			$createStoryForm.slideToggle();
+			$createStoryForm.addClass("hidden");
 		}
 	});
 
@@ -164,6 +167,7 @@ $(async function () {
 		await StoryList.addStory(currentUser, newStory, currentUser.username);
 		generateStories();
 		$createStoryForm.slideToggle();
+		$allStoriesList.show();
 		emptySubmitForm();
 	});
 
