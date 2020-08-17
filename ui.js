@@ -10,6 +10,7 @@ $(async function () {
 	const $navLogOut = $("#nav-logout");
 	const $navLoginOptions = $("#nav-login-options");
 	const $navSubmit = $("#nav-submit");
+	const $navEditUser = $("#nav-edit-user");
 	const $createStoryForm = $("#submit-form");
 	const $createStoryAuthor = $("#author");
 	const $createStoryTitle = $("#title");
@@ -25,6 +26,9 @@ $(async function () {
 	const $editAuthorInput = $("#edit-author");
 	const $editTitleInput = $("#edit-title");
 	const $editUrlInput = $("#edit-url");
+	const $editUserForm = $("#edit-user-form");
+	const $editNameInput = $("#edit-name");
+	const $editPasswordInput = $("#edit-password");
 
 	// elements that are used by the hideElements function
 	const elementsToHide = [
@@ -36,6 +40,7 @@ $(async function () {
 		$createAccountForm,
 		$allFavoritesList,
 		$editArticleForm,
+		$editUserForm,
 	];
 
 	// markup for a trashcan that corresponds to a story submitted by the user that can be deleted
@@ -65,6 +70,8 @@ $(async function () {
 	// boolean value that represents whether or not a user's name, username & created time/date
 	// are shown in the user profile section
 	let profileInfoShown = false;
+
+	let profileInfoUpdated = false;
 
 	// global storyList variable
 	let storyList = null;
@@ -159,6 +166,14 @@ $(async function () {
 		$createStoryForm.addClass("hidden");
 	});
 
+	$navEditUser.on("click", async function () {
+		hideElements();
+		$editNameInput.val(currentUser.name);
+		$editPasswordInput.attr("placeholder", "Enter new password");
+		$editUserForm.toggle();
+		$createStoryForm.addClass("hidden");
+	});
+
 	// event handler for submitting a story from the submit form
 	$createStoryForm.on("submit", async function () {
 		// post new story
@@ -186,7 +201,21 @@ $(async function () {
 		await generateMyStories();
 		$editArticleForm.slideToggle();
 		$editArticleForm.addClass("hidden");
-		console.log(storyToEdit);
+	});
+
+	$editUserForm.on("submit", async function (e) {
+		e.preventDefault();
+		await currentUser.editUser($editNameInput.val(), $editPasswordInput.val());
+		profileInfoUpdated = true;
+		currentUser.name = $editNameInput.val();
+		currentUser.password = $editPasswordInput.val();
+		console.log(currentUser.name);
+		console.log(currentUser.password);
+		await generateMyStories();
+		await loadProfileInfo();
+		$editUserForm.toggle();
+		$allStoriesList.show();
+		$editUserForm.addClass("hidden");
 	});
 
 	// creates a new story object based on the input from the submit form
@@ -482,10 +511,10 @@ $(async function () {
 
 	// loads user profile info (name, username, and created date/time)
 	async function loadProfileInfo() {
-		if (profileInfoShown === false) {
-			$profileName.append(`<b> ${currentUser.name}</b>`);
-			$profileUsername.append(`<b> ${currentUser.username}</b>`);
-			$profileCreatedDate.append(`<b> ${currentUser.createdAt}</b>`);
+		if (profileInfoShown === false || profileInfoUpdated === true) {
+			$profileName.find("b").empty().append(` ${currentUser.name}`);
+			$profileUsername.find("b").empty().append(` ${currentUser.username}`);
+			$profileCreatedDate.find("b").empty().append(` ${currentUser.createdAt}`);
 			profileInfoShown = true;
 		}
 		// update the list of stories to show which are the user's favorites

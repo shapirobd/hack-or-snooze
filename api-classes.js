@@ -73,6 +73,20 @@ class User {
 		this.ownStories = [];
 	}
 
+	async editUser(newName, newPassword) {
+		token = localStorage.getItem("token");
+		let username = this.username;
+		const response = await axios.patch(`${BASE_URL}/users/${username}`, {
+			token,
+			user: {
+				name: newName,
+				password: newPassword,
+			},
+		});
+		console.log(response);
+		return response;
+	}
+
 	async editStory(storyId, newAuthor, newTitle, newUrl) {
 		token = localStorage.getItem("token");
 		const response = await axios.patch(`${BASE_URL}/stories/${storyId}`, {

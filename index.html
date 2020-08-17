@@ -31,8 +31,8 @@
 					<a href="#" class="nav-link" href="#" id="nav-my-stories"
 						>My Stories</a
 					>
-					<!-- |
-					<a href="#" class="nav-link" href="#" id="nav-my-stories">My Stories</a> -->
+					|
+					<a href="#" class="nav-link" href="#" id="nav-edit-user">Edit User</a>
 				</div>
 			</span>
 			<a class="nav-link nav-right" href="#" id="nav-login"
@@ -64,7 +64,7 @@
 			</form>
 			<article>
 				<ol id="all-articles-list" class="articles-list">
-					<h3>Loading...</h3>
+					<h3>...</h3>
 				</ol>
 			</article>
 			<article>
@@ -80,7 +80,7 @@
 		<section class="edit-article-container container">
 			<form action="#" id="edit-article-form" class="hidden" method="post">
 				<h4>Article Information</h4>
-				<div id="edit-input-section">
+				<div class="edit-input-section">
 					<div class="edit-input">
 						<label for="edit-title">Title</label>
 						<input id="edit-title" type="text" />
@@ -93,10 +93,28 @@
 						<label for="edit-url">URL</label>
 						<input id="edit-url" type="text" />
 					</div>
-					<button type="submit">change</button>
+					<button type="submit">Update</button>
 				</div>
 			</form>
 		</section>
+
+		<section class="edit-user-container container">
+			<form action="#" id="edit-user-form" class="hidden" method="post">
+				<h4>User Information</h4>
+				<div class="edit-input-section">
+					<div class="edit-input">
+						<label for="edit-name">Name</label>
+						<input id="edit-name" type="text" />
+					</div>
+					<div class="edit-input">
+						<label for="edit-password">Password</label>
+						<input id="edit-password" type="text" />
+					</div>
+					<button type="submit">Update</button>
+				</div>
+			</form>
+		</section>
+
 		<section class="account-forms-container container">
 			<form
 				action="#"
@@ -141,9 +159,9 @@
 		<section id="user-profile" class="container hidden">
 			<h4>User Profile Info</h4>
 			<section>
-				<div id="profile-name">Name:</div>
-				<div id="profile-username">Username:</div>
-				<div id="profile-account-date">Account Created:</div>
+				<div id="profile-name">Name:<b></b></div>
+				<div id="profile-username">Username:<b></b></div>
+				<div id="profile-account-date">Account Created:<b></b></div>
 			</section>
 		</section>
 	</body>
