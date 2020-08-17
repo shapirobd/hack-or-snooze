@@ -82,7 +82,8 @@ $(async function () {
 	// global currentUser variable
 	let currentUser = null;
 
-	let storyToEdit = {};
+	// global variable that represents the story most recently prompted to be updated via pencil pencil click
+	let storyInstanceToEdit = {};
 
 	await checkIfLoggedIn();
 
@@ -174,9 +175,25 @@ $(async function () {
 		$createStoryForm.addClass("hidden");
 	});
 
+	function isDuplicateUrl() {
+		let matchFound = false;
+		storyList.stories.map((story) => {
+			if (matchFound === false) {
+				if (story.url === $createStoryUrl.val()) {
+					matchFound = true;
+				}
+			}
+		});
+		return matchFound;
+	}
+
 	// event handler for submitting a story from the submit form
 	$createStoryForm.on("submit", async function () {
 		// post new story
+		if (isDuplicateUrl()) {
+			alert("A story with this URL already exists!");
+			return;
+		}
 		let newStory = createNewStoryObj();
 		// const storyListInstance = await StoryList.getStories();
 		await StoryList.addStory(currentUser, newStory, currentUser.username);
@@ -188,16 +205,14 @@ $(async function () {
 
 	$editArticleForm.on("submit", async function (e) {
 		e.preventDefault();
-		const storyId = storyToEdit.storyId;
+		const storyId = storyInstanceToEdit.storyId;
 		await currentUser.editStory(
 			storyId,
 			$editAuthorInput.val(),
 			$editTitleInput.val(),
 			$editUrlInput.val()
 		);
-		storyToEdit.author = $editAuthorInput.val();
-		storyToEdit.title = $editTitleInput.val();
-		storyToEdit.url = $editUrlInput.val();
+		updateStoryToEdit();
 		await generateMyStories();
 		$editArticleForm.slideToggle();
 		$editArticleForm.addClass("hidden");
@@ -207,16 +222,25 @@ $(async function () {
 		e.preventDefault();
 		await currentUser.editUser($editNameInput.val(), $editPasswordInput.val());
 		profileInfoUpdated = true;
-		currentUser.name = $editNameInput.val();
-		currentUser.password = $editPasswordInput.val();
-		console.log(currentUser.name);
-		console.log(currentUser.password);
+		updateUserInstance();
 		await generateMyStories();
 		await loadProfileInfo();
 		$editUserForm.toggle();
 		$allStoriesList.show();
 		$editUserForm.addClass("hidden");
 	});
+
+	// update author title & url of story from storyList so that forms fill correctly
+	function updateStoryToEdit() {
+		storyInstanceToEdit.author = $editAuthorInput.val();
+		storyInstanceToEdit.title = $editTitleInput.val();
+		storyInstanceToEdit.url = $editUrlInput.val();
+	}
+
+	function updateUserInstance() {
+		currentUser.name = $editNameInput.val();
+		currentUser.password = $editPasswordInput.val();
+	}
 
 	// creates a new story object based on the input from the submit form
 	function createNewStoryObj() {
@@ -265,42 +289,38 @@ $(async function () {
 		})[0];
 	}
 
+	function fillEditStoryForm() {
+		$editTitleInput.val(storyInstanceToEdit.title);
+		$editAuthorInput.val(storyInstanceToEdit.author);
+		$editUrlInput.val(storyInstanceToEdit.url);
+	}
+
+	async function showEditArticleForm() {
+		storyInstanceToEdit = await findStoryToEdit(this);
+		$editArticleForm.slideToggle(fillEditStoryForm());
+	}
+
+	// creates a click listener on a pencil icon that reveals $editArticleForm
 	function listenForEditStory(pencil) {
 		pencil.on("click", async function () {
+			// get the corresponding story from the API
 			let clickedStory = await findStoryToEdit(this);
-
+			// create an array of keys from clickedStory
 			let clickedStoryKeys = Object.keys(clickedStory);
-			let storyToEditKeys = Object.keys(storyToEdit);
-			let isMatch = true;
-			if (clickedStoryKeys.length !== storyToEditKeys.length) {
-				isMatch = false;
-				storyToEdit = await findStoryToEdit(this);
-				$editArticleForm.slideToggle(function () {
-					$editTitleInput.val(storyToEdit.title);
-					$editAuthorInput.val(storyToEdit.author);
-					$editUrlInput.val(storyToEdit.url);
-				});
+			// create an array of keys from the corresponding story from storyList
+			let storyInstanceToEditKeys = Object.keys(storyInstanceToEdit);
+			// if the
+			if (clickedStoryKeys.length !== storyInstanceToEditKeys.length) {
+				showEditArticleForm();
 			} else {
 				for (let key of clickedStoryKeys) {
-					if (clickedStory[key] !== storyToEdit[key]) {
-						isMatch = false;
-						storyToEdit = await findStoryToEdit(this);
-						$editArticleForm.slideToggle(function () {
-							$editTitleInput.val(storyToEdit.title);
-							$editAuthorInput.val(storyToEdit.author);
-							$editUrlInput.val(storyToEdit.url);
-						});
+					if (clickedStory[key] !== storyInstanceToEdit[key]) {
+						showEditArticleForm();
 						$editArticleForm.slideToggle();
 						break;
 					}
 				}
 			}
-			// if (isMatch === false) {
-			// 	const storyId = storyToEdit.storyId;
-			// 	submitEdit(storyId, storyToEdit);
-			// } else {
-			// 	return;
-			// }
 		});
 	}
 
@@ -479,7 +499,7 @@ $(async function () {
 			$myStoriesList.append(generateMyStoryHTML(story));
 		});
 		addStarsTrashAndPencils();
-		storyToEdit = {};
+		storyInstanceToEdit = {};
 	}
 
 	// renders the list of favorites
