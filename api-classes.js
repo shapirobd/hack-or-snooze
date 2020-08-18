@@ -83,7 +83,6 @@ class User {
 				password: newPassword,
 			},
 		});
-		console.log(response);
 		return response;
 	}
 
@@ -97,7 +96,6 @@ class User {
 				url: `${newUrl}`,
 			},
 		});
-		console.log(response);
 		return response;
 	}
 
